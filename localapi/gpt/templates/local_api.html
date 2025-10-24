@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Local API Chat</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background-color: rgb(33, 33, 33);
+      color: rgb(255, 255, 255);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    h2 {
+      margin: 10px 0;
+      text-align: center;
+    }
+
+    #chatWrapper {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 900px; /* ✅ max width */
+      height: 100%;
+    }
+
+    #chatContainer {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 20px;
+      display: flex;
+      flex-direction: column;
+      scroll-behavior: smooth;
+    }
+
+    .message {
+      margin: 8px 0;
+      padding: 10px 14px;
+      border-radius: 10px;
+      max-width: 70%;
+      white-space: pre-line;
+      line-height: 1.8;
+      word-wrap: break-word;
+    }
+
+    .user {
+      align-self: flex-end;
+      background-color: rgb(48, 48, 48);
+      color: rgb(255, 255, 255);
+    }
+
+    .bot {
+      align-self: flex-start;
+      background-color: rgb(33, 33, 33);
+      border: 1px solid #555;
+    }
+
+    #inputContainer {
+      display: flex;
+      align-items: flex-end;
+      background-color: rgb(40, 40, 40);
+      padding: 10px 15px;
+      border-top: 1px solid #555;
+    }
+
+    #promptBox {
+      flex: 1;
+      resize: none;
+      background-color: rgb(48, 48, 48);
+      color: rgb(255, 255, 226);
+      border: 1px solid #666;
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 14px;
+      line-height: 1.5;
+      max-height: calc(1.5em * 7); /* max 7 lines */
+      overflow-y: auto;
+    }
+
+    #sendBtn {
+      padding: 8px 16px;
+      margin-left: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      height: 40px;
+      flex-shrink: 0;
+    }
+
+    #sendBtn:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <div id="chatWrapper">
+    <h2>Local API Chat</h2>
+
+    <div id="chatContainer">
+      <div class="message bot">Hi 👋 Type your prompt below to start chatting!</div>
+    </div>
+
+    <div id="inputContainer">
+      <textarea id="promptBox" placeholder="Type your message..."></textarea>
+      <button id="sendBtn">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const sendBtn = document.getElementById("sendBtn");
+    const promptBox = document.getElementById("promptBox");
+    const chatContainer = document.getElementById("chatContainer");
+
+    // ✅ Auto expand textarea height
+    promptBox.addEventListener("input", function() {
+      this.style.height = "auto";
+      const maxHeight = parseFloat(getComputedStyle(this).lineHeight) * 7;
+      this.style.height = Math.min(this.scrollHeight, maxHeight) + "px";
+    });
+
+    async function sendPrompt() {
+      const prompt = promptBox.value.trim();
+      if (!prompt) return;
+
+      addMessage(prompt, "user");
+      promptBox.value = "";
+      promptBox.style.height = "auto";
+
+      addMessage("Thinking...", "bot");
+
+      try {
+        const res = await fetch(`?prompt=${encodeURIComponent(prompt)}`);
+        const data = await res.json();
+
+        let responseText = "Unexpected response format";
+        if (data.result?.response?.response)
+          responseText = data.result.response.response;
+        else if (data.error)
+          responseText = "Error: " + data.error;
+
+        replaceLastBotMessage(responseText);
+      } catch (err) {
+        replaceLastBotMessage("Request failed: " + err);
+      }
+
+      scrollToBottom();
+    }
+
+    function addMessage(text, sender) {
+      const msgDiv = document.createElement("div");
+      msgDiv.classList.add("message", sender);
+      msgDiv.textContent = text;
+      chatContainer.appendChild(msgDiv);
+      scrollToBottom();
+    }
+
+    function replaceLastBotMessage(newText) {
+      const botMessages = chatContainer.querySelectorAll(".bot");
+      if (botMessages.length > 0)
+        botMessages[botMessages.length - 1].textContent = newText;
+    }
+
+    function scrollToBottom() {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    // ✅ Handle Enter / Shift+Enter
+    promptBox.addEventListener("keydown", function(e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendPrompt();
+      }
+    });
+
+    sendBtn.addEventListener("click", sendPrompt);
+
+    window.addEventListener("load", scrollToBottom);
+  </script>
+</body>
+</html>
