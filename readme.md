@@ -35,7 +35,7 @@ venv\Scripts\activate
 
 ### 3️⃣ Install Dependencies
 ```sh
-pip install django djangorestframework selenium
+pip install -r requirements.txt
 ```
 
 ### 4️⃣ Download Chrome Driver
@@ -88,7 +88,9 @@ print(res.text)
 ---
 
 ## 📌 Author
-Created by **ar_titumir**  
+
+Created by [**ar_titumir**](https://github.com/azizur19)  
+If this tool helps your productivity, please give a ⭐ on GitHub. 
 https://github.com/azizur19 
 
 ---
