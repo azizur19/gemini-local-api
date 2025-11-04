@@ -70,7 +70,7 @@ Example usage from Python:
 ```python
 import requests
 res = requests.get("http://127.0.0.1:8000/api/local?prompt=hello")
-print(res.text)
+print(res.json()["result"]["response"]["response"])
 ```
 
 ---
